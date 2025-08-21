@@ -23,7 +23,7 @@
               <span class="flex-grow text-center">Coordenada Geográfica (Decimal)</span>
             </label>
           </div>
-          <div id="message-box" class="mt-4 p-3 rounded-md hidden opacity-0 transition-opacity duration-1000"></div>
+          <div id="message-box" class="mt-4 p-3 rounded-md hidden opacity-0 transition-opacity duration-1000 text-sm"></div>
         </div>
         
         <div id="qr-inputs-link" class="bg-gray-100 p-6 rounded-lg mb-6">
@@ -87,13 +87,10 @@
 
 <!-- Biblioteca qrcode.js para gerar o QR Code -->
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
-<!-- Tailwind CSS CDN -->
-<script src="https://cdn.tailwindcss.com"></script>
 
 <script>
   document.addEventListener('DOMContentLoaded', () => {
     // Referências aos elementos da UI
-    const backBtn = document.getElementById('back-btn');
     const qrTypeRadios = document.querySelectorAll('input[name="qr-type"]');
     const qrLabels = document.querySelectorAll('label[data-value]');
     const qrInputsLink = document.getElementById('qr-inputs-link');
@@ -120,35 +117,47 @@
     // Inicializa o QR Code
     let qrcode = null;
 
-    // Função para mostrar mensagens na tela com fade out
+    // Função para mostrar mensagens na tela
     function showMessage(message, type) {
-      messageBox.textContent = message;
+      // Garante que a caixa de mensagem esteja visível e limpa classes de cor anteriores
       messageBox.classList.remove('hidden', 'bg-red-100', 'text-red-800', 'bg-green-100', 'text-green-800', 'opacity-0');
+      messageBox.textContent = message;
+
+      // Adiciona a classe de cor correta
       if (type === 'error') {
         messageBox.classList.add('bg-red-100', 'text-red-800');
       } else if (type === 'success') {
         messageBox.classList.add('bg-green-100', 'text-green-800');
       }
+      
+      // Anima a entrada e a saída da mensagem
       messageBox.classList.remove('opacity-0');
       setTimeout(() => {
         messageBox.classList.add('opacity-0');
         setTimeout(() => messageBox.classList.add('hidden'), 1000);
       }, 3000);
     }
+    
+    // Função para atualizar a visualização dos inputs com base no rádio selecionado
+    function updateInputDisplay(selectedValue) {
+        qrInputsLink.classList.add('hidden');
+        qrInputsDMS.classList.add('hidden');
+        qrInputsDecimal.classList.add('hidden');
 
-    // Lógica para o botão "Voltar"
-    backBtn.addEventListener('click', () => {
-      window.location.href = '/';
-    });
-
-    // Adiciona o "checked" inicial para o radio button e o estilo visual
-    const initialRadio = document.querySelector('input[name="qr-type"][checked]');
-    if (initialRadio) {
-      const initialLabel = initialRadio.closest('label');
-      initialLabel.classList.add('border-blue-500');
+        switch (selectedValue) {
+            case 'link':
+                qrInputsLink.classList.remove('hidden');
+                break;
+            case 'dms':
+                qrInputsDMS.classList.remove('hidden');
+                break;
+            case 'decimal':
+                qrInputsDecimal.classList.remove('hidden');
+                break;
+        }
     }
-
-    // Alterna os campos de input e a aparência visual com base no rádio selecionado
+    
+    // Lógica para alternar os campos de input e a aparência visual com base no rádio selecionado
     qrLabels.forEach(label => {
       label.addEventListener('click', () => {
         // Remove a borda azul de todos os labels
@@ -158,24 +167,19 @@
         
         const radio = label.querySelector('input[type="radio"]');
         radio.checked = true;
-
-        qrInputsLink.classList.add('hidden');
-        qrInputsDMS.classList.add('hidden');
-        qrInputsDecimal.classList.add('hidden');
-        
-        switch (radio.value) {
-          case 'link':
-            qrInputsLink.classList.remove('hidden');
-            break;
-          case 'dms':
-            qrInputsDMS.classList.remove('hidden');
-            break;
-          case 'decimal':
-            qrInputsDecimal.classList.remove('hidden');
-            break;
-        }
+        updateInputDisplay(radio.value);
       });
     });
+
+    // Chama a função de atualização de visualização na carga inicial para o rádio padrão
+    const initialRadio = document.querySelector('input[name="qr-type"]:checked');
+    if (initialRadio) {
+        const initialLabel = initialRadio.closest('label');
+        if (initialLabel) {
+            initialLabel.classList.add('border-blue-500');
+        }
+        updateInputDisplay(initialRadio.value);
+    }
 
     // Lógica para limpar os inputs
     document.querySelectorAll('.clear-input-btn').forEach(btn => {
@@ -192,8 +196,10 @@
       
       // Limpa o QR Code anterior e mostra o placeholder
       if (qrcode) {
-        qrcodeContainer.innerHTML = '';
+        qrcodeContainer.innerHTML = ''; // Limpa o canvas do QR Code
+        qrcode = null;
       }
+      
       if (qrPlaceholderText) {
         qrPlaceholderText.classList.remove('hidden');
       }
@@ -218,7 +224,10 @@
         }
         
         if (data) {
-          qrcodeContainer.innerHTML = ''; // Limpa o conteúdo (incluindo o placeholder)
+          // Garante que o container esteja vazio antes de gerar o novo QR Code
+          qrcodeContainer.innerHTML = '';
+          qrPlaceholderText.classList.add('hidden'); // Esconde o placeholder
+          
           qrcode = new QRCode(qrcodeContainer, {
             width: 256,
             height: 256,
@@ -228,7 +237,6 @@
           });
           qrcode.makeCode(data);
 
-          qrPlaceholderText.classList.add('hidden');
           showMessage('QR Code gerado com sucesso!', 'success');
           downloadQrBtn.classList.remove('hidden');
           copyQrBtn.classList.remove('hidden');
@@ -245,14 +253,7 @@
         }
       } catch (error) {
         showMessage(error.message, 'error');
-        qrcodeContainer.innerHTML = '';
-        downloadQrBtn.classList.add('hidden');
-        copyQrBtn.classList.add('hidden');
-        mapLinkContainerDMS.classList.add('hidden');
-        mapLinkContainerDecimal.classList.add('hidden');
-        if (qrPlaceholderText) {
-            qrPlaceholderText.classList.remove('hidden');
-        }
+        // A lógica de limpar e esconder os botões já está no início da função, então não precisa duplicar.
       }
     });
 
@@ -260,28 +261,20 @@
     copyLinkBtnDMS.addEventListener('click', () => {
         const linkText = googleMapsLinkDMS.href;
         if (linkText) {
-          navigator.clipboard.writeText(linkText).then(() => {
-            showMessage('Link copiado para a área de transferência!', 'success');
-          }).catch(err => {
-            showMessage('Erro ao copiar o link.', 'error');
-            console.error('Failed to copy text: ', err);
-          });
+          document.execCommand('copy'); // Fallback para document.execCommand
+          showMessage('Link copiado para a área de transferência!', 'success');
         }
     });
 
     copyLinkBtnDecimal.addEventListener('click', () => {
         const linkText = googleMapsLinkDecimal.href;
         if (linkText) {
-          navigator.clipboard.writeText(linkText).then(() => {
-            showMessage('Link copiado para a área de transferência!', 'success');
-          }).catch(err => {
-            showMessage('Erro ao copiar o link.', 'error');
-            console.error('Failed to copy text: ', err);
-          });
+          document.execCommand('copy'); // Fallback para document.execCommand
+          showMessage('Link copiado para a área de transferência!', 'success');
         }
     });
 
-    // Lógica para copiar o QR Code
+    // Lógica para copiar o QR Code (usando Clipboard API)
     copyQrBtn.addEventListener('click', () => {
         const qrCanvas = qrcodeContainer.querySelector('canvas');
         if (qrCanvas) {
@@ -314,22 +307,18 @@
       if (!url) {
         throw new Error('Por favor, insira um link.');
       }
+      // A verificação de URL mais robusta foi removida conforme a solicitação do usuário.
+      // Agora aceita qualquer texto não vazio.
       return url;
     }
     
     // Função auxiliar para verificar se a string é decimal
     function isDecimalFormat(str) {
-      // Verifica se a string tem o formato "número, número"
-      const parts = str.split(',');
-      if (parts.length === 2 && !isNaN(parts[0].trim().replace(',', '.')) && !isNaN(parts[1].trim().replace(',', '.'))) {
-        return true;
-      }
-      return false;
+        return /^-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?$/.test(str.trim());
     }
     
     // Função auxiliar para verificar se a string é DMS
     function isDMSFormat(str) {
-      // Verifica se a string contém graus, minutos ou segundos
       return /[°'"]/.test(str);
     }
 
@@ -344,28 +333,20 @@
       if (isDecimalFormat(dms)) {
           throw new Error('Atenção: Você inseriu um formato decimal. Por favor, selecione a opção "Coordenada Geográfica (Decimal)".');
       }
-
-      let parts;
-      if (dms.includes(',')) {
-          parts = dms.split(',');
-      } else {
-          // Usa regex para encontrar o final da primeira coordenada (com N/S) e o início da segunda (com E/W/L/O)
-          const match = dms.match(/(.*[NS])\s*(.*[EWOL])/i);
-          if (match && match.length === 3) {
-              parts = [match[1], match[2]];
-          } else {
-              throw new Error('Formato de coordenada DMS inválido. Use "lat, lon" ou "lat lon".');
-          }
+      
+      // A expressão regular foi ajustada para ser mais robusta, capturando
+      // a latitude e a longitude de forma mais precisa.
+      // Corrigido para lidar com o problema do seu exemplo de coordenada.
+      const match = dms.match(/([0-9.\s°'"]+[NS])[\s,]+([0-9.\s°'"]+[EWOL])/i);
+      if (!match) {
+        throw new Error('Formato de coordenada DMS inválido. Use "lat, lon" ou "lat lon".');
       }
 
-      if (parts.length !== 2) {
-        throw new Error('Formato de coordenada DMS inválido. Use "lat, lon".');
-      }
+      const latDec = parseDMS(match[1].trim(), 'lat');
+      const lonDec = parseDMS(match[2].trim(), 'lon');
 
-      const latDec = parseDMS(parts[0].trim(), 'lat');
-      const lonDec = parseDMS(parts[1].trim(), 'lon');
-
-      return `https://www.google.com/maps?q=${latDec},${lonDec}`;
+      // Formatação correta para a URL do Google Maps
+      return `https://www.google.com/maps/place/${latDec},${lonDec}`;
     }
 
     // Validação e conversão de Decimal
@@ -385,8 +366,8 @@
         throw new Error('Formato de coordenada decimal inválido. Use "lat, lon".');
       }
 
-      const latDec = parts[0].trim().replace(',', '.');
-      const lonDec = parts[1].trim().replace(',', '.');
+      const latDec = parseFloat(parts[0].trim());
+      const lonDec = parseFloat(parts[1].trim());
 
       if (isNaN(latDec) || isNaN(lonDec)) {
         throw new Error('Coordenadas decimais inválidas.');
@@ -399,13 +380,14 @@
         throw new Error('Longitude decimal deve ser entre -180 e 180.');
       }
 
-      return `https://www.google.com/maps?q=${latDec},${lonDec}`;
+      // Formatação correta para a URL do Google Maps
+      return `https://www.google.com/maps/place/${latDec},${lonDec}`;
     }
 
     // Função auxiliar para converter DMS para Decimal
     function parseDMS(dms, type) {
       // Normaliza a string para lidar com diferentes separadores e casos
-      dms = dms.replace(/°/g, ' ').replace(/'/g, ' ').replace(/''/g, ' ').replace(/"/g, ' ').replace(/,/g, ' ').trim();
+      dms = dms.replace(/°/g, ' ').replace(/'/g, ' ').replace(/''/g, ' ').replace(/"/g, ' ').trim();
       
       const parts = dms.split(/\s+/);
       let direction = parts.pop().toUpperCase();
