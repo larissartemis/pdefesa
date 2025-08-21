@@ -1,7 +1,5 @@
-<script type="text/javascript" src="https://cdn.emailjs.com/dist/email.min.js"></script>
-
 <div class="content-area p-4 sm:p-8">
-  <div class="bg-white p-8 rounded-lg shadow-md w-full mx-auto">
+  <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-lg mx-auto">
     <div class="flex justify-between items-center mb-6">
       <h2 class="text-3xl sm:text-4xl font-bold text-gray-800">Fale conosco</h2>
       <button id="back-btn" class="bg-gray-500 text-white font-bold py-2 px-4 rounded-md shadow-lg hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition duration-200">
@@ -17,11 +15,11 @@
         <input type="text" id="nome" name="nome" required class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200">
       </div>
       <div class="mb-4">
-        <label for="email" class="block text-gray-700 font-semibold mb-2">E-mail:</label>
+        <label for="email">E-mail:</label>
         <input type="email" id="email" name="email" required class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200">
       </div>
       <div class="mb-4">
-        <label for="mensagem" class="block text-gray-700 font-semibold mb-2">Mensagem:</label>
+        <label for="mensagem">Mensagem:</label>
         <p class="text-gray-600 text-sm mb-2">Opcionalmente, informe seu telefone no campo abaixo e entramos em contato via WhatsApp.</p>
         <textarea id="mensagem" name="mensagem" rows="4" required class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200"></textarea>
       </div>
@@ -32,15 +30,22 @@
   </div>
 </div>
 
-<script type="text/javascript">
+<script type="text/javascript" src="https://cdn.emailjs.com/dist/email.min.js"></script>
+
+<script>
   document.addEventListener('DOMContentLoaded', () => {
     // Referências aos elementos
     const backBtn = document.getElementById('back-btn');
     const contactForm = document.getElementById('contact-form');
     const messageBox = document.getElementById('message-box');
     const submitBtn = document.getElementById('submit-btn');
+    
+    // Variáveis de ambiente injetadas pelo EJS
+    const emailJsPublicKey = "<%= emailJsPublicKey %>";
+    const emailJsServiceId = "<%= emailJsServiceId %>";
+    const emailJsTemplateId = "<%= emailJsTemplateId %>";
 
-    // Lógica para mostrar mensagens na tela com fade out
+    // Função para mostrar mensagens na tela com fade out
     function showMessage(message, type) {
       messageBox.textContent = message;
       messageBox.classList.remove('hidden', 'bg-red-100', 'text-red-800', 'bg-green-100', 'text-green-800', 'bg-yellow-100', 'text-yellow-800', 'opacity-0');
@@ -70,9 +75,11 @@
       submitBtn.disabled = true;
       showMessage('Enviando mensagem...', 'info');
 
-      emailjs.init("Iz0JdphNpHo9YRn28"); 
+      // Inicializa o EmailJS com a chave pública.
+      emailjs.init(emailJsPublicKey); 
       
-      emailjs.sendForm("service_ckxevx4", "template_hhvg8yh", this)
+      // Envia o formulário
+      emailjs.sendForm(emailJsServiceId, emailJsTemplateId, this)
         .then(function (response) {
           showMessage('Sua mensagem foi enviada, em breve retornamos seu contato.', 'success');
           contactForm.reset();
@@ -80,6 +87,7 @@
         }, function (error) {
           showMessage('Opa, houve um erro ao enviar sua mensagem. Tente novamente.', 'error');
           submitBtn.disabled = false;
+          console.error('Falha no envio do e-mail:', error);
         });
     });
   });
