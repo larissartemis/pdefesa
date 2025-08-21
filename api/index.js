@@ -51,10 +51,7 @@ app.get('/matrizes', (req, res) => {
 app.get('/contato', (req, res) => {
   res.render('layout', {
     pageTitle: 'Contato',
-    content: 'contato',
-    emailJsPublicKey: process.env.EMAILJS_PUBLIC_KEY,
-    emailJsServiceId: process.env.EMAILJS_SERVICE_ID,
-    emailJsTemplateId: process.env.EMAILJS_TEMPLATE_ID
+    content: 'contato'
   });
 });
 
