@@ -1,0 +1,86 @@
+<script type="text/javascript" src="https://cdn.emailjs.com/dist/email.min.js"></script>
+
+<div class="content-area p-4 sm:p-8">
+  <div class="bg-white p-8 rounded-lg shadow-md w-full mx-auto">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-3xl sm:text-4xl font-bold text-gray-800">Fale conosco</h2>
+      <button id="back-btn" class="bg-gray-500 text-white font-bold py-2 px-4 rounded-md shadow-lg hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition duration-200">
+        Voltar
+      </button>
+    </div>
+    
+    <div id="message-box" class="mt-4 p-3 rounded-md hidden opacity-0 transition-opacity duration-1000"></div>
+
+    <form id="contact-form" class="mt-6">
+      <div class="mb-4">
+        <label for="nome" class="block text-gray-700 font-semibold mb-2">Nome:</label>
+        <input type="text" id="nome" name="nome" required class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200">
+      </div>
+      <div class="mb-4">
+        <label for="email" class="block text-gray-700 font-semibold mb-2">E-mail:</label>
+        <input type="email" id="email" name="email" required class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200">
+      </div>
+      <div class="mb-4">
+        <label for="mensagem" class="block text-gray-700 font-semibold mb-2">Mensagem:</label>
+        <p class="text-gray-600 text-sm mb-2">Opcionalmente, informe seu telefone no campo abaixo e entramos em contato via WhatsApp.</p>
+        <textarea id="mensagem" name="mensagem" rows="4" required class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200"></textarea>
+      </div>
+      <button type="submit" id="submit-btn" class="w-full bg-blue-900 text-white font-bold py-3 px-6 rounded-md shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-200">
+        Enviar
+      </button>
+    </form>
+  </div>
+</div>
+
+<script type="text/javascript">
+  document.addEventListener('DOMContentLoaded', () => {
+    // Referências aos elementos
+    const backBtn = document.getElementById('back-btn');
+    const contactForm = document.getElementById('contact-form');
+    const messageBox = document.getElementById('message-box');
+    const submitBtn = document.getElementById('submit-btn');
+
+    // Lógica para mostrar mensagens na tela com fade out
+    function showMessage(message, type) {
+      messageBox.textContent = message;
+      messageBox.classList.remove('hidden', 'bg-red-100', 'text-red-800', 'bg-green-100', 'text-green-800', 'bg-yellow-100', 'text-yellow-800', 'opacity-0');
+      if (type === 'error') {
+        messageBox.classList.add('bg-red-100', 'text-red-800');
+      } else if (type === 'success') {
+        messageBox.classList.add('bg-green-100', 'text-green-800');
+      } else if (type === 'info') {
+        messageBox.classList.add('bg-yellow-100', 'text-yellow-800');
+      }
+      messageBox.classList.remove('opacity-0');
+      setTimeout(() => {
+        messageBox.classList.add('opacity-0');
+        setTimeout(() => messageBox.classList.add('hidden'), 1000);
+      }, 3000);
+    }
+    
+    // Lógica para o botão "Voltar"
+    backBtn.addEventListener('click', () => {
+      window.location.href = '/';
+    });
+
+    // Lógica para o formulário de contato
+    contactForm.addEventListener("submit", function (event) {
+      event.preventDefault(); 
+      
+      submitBtn.disabled = true;
+      showMessage('Enviando mensagem...', 'info');
+
+      emailjs.init("Iz0JdphNpHo9YRn28"); 
+      
+      emailjs.sendForm("service_ckxevx4", "template_hhvg8yh", this)
+        .then(function (response) {
+          showMessage('Sua mensagem foi enviada, em breve retornamos seu contato.', 'success');
+          contactForm.reset();
+          submitBtn.disabled = false;
+        }, function (error) {
+          showMessage('Opa, houve um erro ao enviar sua mensagem. Tente novamente.', 'error');
+          submitBtn.disabled = false;
+        });
+    });
+  });
+</script>

@@ -1,0 +1,621 @@
+<div class="p-4 sm:p-8 bg-gray-100 min-h-screen">
+  <div id="matrizes-editor" class="bg-white p-8 rounded-lg shadow-md w-full mx-auto">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-3xl sm:text-4xl font-bold text-gray-800">Matrizes de Risco</h2>
+      <button id="back-btn" class="bg-gray-500 text-white font-bold py-2 px-4 rounded-md shadow-lg hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition duration-200">
+        Voltar
+      </button>
+    </div>
+    
+    <div class="grid grid-cols-1 gap-8 items-start">
+      <!-- Coluna de Inputs e Rádios -->
+      <div>
+        <div class="mb-6">
+          <p class="text-gray-700 font-semibold mb-2">Escolha o tipo de matriz:</p>
+          <div class="flex flex-col sm:flex-row gap-4 mb-4">
+            <label class="flex-grow flex items-center gap-2 cursor-pointer p-4 rounded-lg border-2 border-transparent hover:border-blue-500 bg-gray-50 transition duration-200" data-value="swot">
+              <input type="radio" name="matriz-type" value="swot" checked class="hidden">
+              <span class="flex-grow text-center">Matriz SWOT</span>
+            </label>
+            <label class="flex-grow flex items-center gap-2 cursor-pointer p-4 rounded-lg border-2 border-transparent hover:border-blue-500 bg-gray-50 transition duration-200" data-value="gut">
+              <input type="radio" name="matriz-type" value="gut" class="hidden">
+              <span class="flex-grow text-center">Matriz GUT</span>
+            </label>
+            <label class="flex-grow flex items-center gap-2 cursor-pointer p-4 rounded-lg border-2 border-transparent hover:border-blue-500 bg-gray-50 transition duration-200" data-value="5w2h">
+              <input type="radio" name="matriz-type" value="5w2h" class="hidden">
+              <span class="flex-grow text-center">5W2H</span>
+            </label>
+          </div>
+        </div>
+        
+        <div id="matriz-inputs" class="bg-gray-100 p-6 rounded-lg mb-6">
+          <!-- Inputs serao carregados dinamicamente aqui -->
+        </div>
+
+        <button id="gerar-matriz-btn" class="w-full bg-blue-900 text-white font-bold py-3 px-6 rounded-md shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-200">
+          Gerar Matriz
+        </button>
+      </div>
+
+      <!-- Coluna da Matriz Gerada -->
+      <div class="bg-gray-100 p-8 rounded-lg shadow-md flex flex-col items-center justify-center relative mt-8">
+        <div id="matriz-output" class="w-full h-full">
+          <div id="placeholder-text" class="text-center text-gray-400 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">Sua matriz aparecerá aqui</div>
+        </div>
+        <div id="matriz-buttons" class="mt-4 hidden w-full flex flex-col sm:flex-row gap-2">
+          <button id="download-matriz-btn" class="flex-grow bg-blue-900 text-white font-bold py-3 px-6 rounded-md shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-200">
+            Baixar imagem
+          </button>
+          <button id="download-txt-btn" class="flex-grow bg-gray-700 text-white font-bold py-3 px-6 rounded-md shadow-lg hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition duration-200">
+            Baixar arquivo de texto
+          </button>
+          <button id="share-whatsapp-btn" class="flex-grow bg-green-700 text-white font-bold py-3 px-6 rounded-md shadow-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2 transition duration-200">
+            Compartilhar no WhatsApp
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <div id="message-box" class="mt-4 p-3 rounded-md hidden opacity-0 transition-opacity duration-1000"></div>
+  </div>
+</div>
+
+<!-- Biblioteca html2canvas para renderizar o div como imagem -->
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+<!-- Tailwind CSS CDN -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const backBtn = document.getElementById('back-btn');
+    const matrizTypeRadios = document.querySelectorAll('input[name="matriz-type"]');
+    const matrizLabels = document.querySelectorAll('label[data-value]');
+    const matrizInputsContainer = document.getElementById('matriz-inputs');
+    const gerarMatrizBtn = document.getElementById('gerar-matriz-btn');
+    const matrizOutput = document.getElementById('matriz-output');
+    const placeholderText = document.getElementById('placeholder-text');
+    const matrizButtons = document.getElementById('matriz-buttons');
+    const downloadMatrizBtn = document.getElementById('download-matriz-btn');
+    const downloadTxtBtn = document.getElementById('download-txt-btn');
+    const shareWhatsappBtn = document.getElementById('share-whatsapp-btn');
+    const messageBox = document.getElementById('message-box');
+
+    let currentMatrizType = 'swot';
+    let gutProblemas = [];
+    let tarefas5w2h = [];
+
+    // Funcao para mostrar mensagens na tela com fade out
+    function showMessage(message, type) {
+      messageBox.textContent = message;
+      messageBox.classList.remove('hidden', 'bg-red-100', 'text-red-800', 'bg-green-100', 'text-green-800', 'bg-yellow-100', 'text-yellow-800', 'opacity-0');
+      if (type === 'error') {
+        messageBox.classList.add('bg-red-100', 'text-red-800');
+      } else if (type === 'success') {
+        messageBox.classList.add('bg-green-100', 'text-green-800');
+      } else if (type === 'info') {
+        messageBox.classList.add('bg-yellow-100', 'text-yellow-800');
+      }
+      messageBox.classList.remove('opacity-0');
+      setTimeout(() => {
+        messageBox.classList.add('opacity-0');
+        setTimeout(() => messageBox.classList.add('hidden'), 1000);
+      }, 3000);
+    }
+
+    // Logica para o botao "Voltar"
+    backBtn.addEventListener('click', () => {
+      window.location.href = '/';
+    });
+
+    // Funcoes para renderizar os inputs de cada matriz
+    function renderSwotInputs() {
+      matrizInputsContainer.innerHTML = `
+        <div class="mb-4">
+          <label for="titulo-swot" class="block text-gray-700 font-semibold mb-2">Titulo:</label>
+          <input type="text" id="titulo-swot" placeholder="Título da análise" class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="forcas-swot" class="block text-gray-700 font-semibold mb-2">Forças:</label>
+            <textarea id="forcas-swot" rows="4" placeholder="Aspectos positivos internos de uma organização, que lhe conferem vantagem" class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"></textarea>
+          </div>
+          <div>
+            <label for="fraquezas-swot" class="block text-gray-700 font-semibold mb-2">Fraquezas:</label>
+            <textarea id="fraquezas-swot" rows="4" placeholder="Aspectos negativos internos de uma organização, áreas onde ela tem dificuldades ou limitações" class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"></textarea>
+          </div>
+          <div>
+            <label for="oportunidades-swot" class="block text-gray-700 font-semibold mb-2">Oportunidades:</label>
+            <textarea id="oportunidades-swot" rows="4" placeholder="Fatores externos positivos que uma organização pode aproveitar para alcançar seus objetivos" class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"></textarea>
+          </div>
+          <div>
+            <label for="ameacas-swot" class="block text-gray-700 font-semibold mb-2">Ameacas:</label>
+            <textarea id="ameacas-swot" rows="4" placeholder="Fatores externos negativos que podem atrapalhar os objetivos da organização" class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"></textarea>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderGutInputs() {
+      matrizInputsContainer.innerHTML = `
+        <div class="mb-4">
+          <label for="titulo-gut" class="block text-gray-700 font-semibold mb-2">Titulo:</label>
+          <input type="text" id="titulo-gut" placeholder="Título da análise" class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div class="mb-4">
+          <p class="text-gray-700 font-semibold mb-2">Adicionar Problema:</p>
+          <div class="flex flex-col sm:flex-row gap-4 mb-2">
+            <input type="text" id="problema-input" placeholder="Descrição do problema" class="flex-grow p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500">
+            <select id="gut-g" class="p-3 border border-gray-300 rounded-md">
+              <option value="0">G (Gravidade)</option>
+              <option value="1">1 - Sem Gravidade</option>
+              <option value="2">2 - Pouco Grave</option>
+              <option value="3">3 - Grave</option>
+              <option value="4">4 - Muito Grave</option>
+              <option value="5">5 - Extremamente Grave</option>
+            </select>
+            <select id="gut-u" class="p-3 border border-gray-300 rounded-md">
+              <option value="0">U (Urgência)</option>
+              <option value="1">1 - Pode esperar</option>
+              <option value="2">2 - Pouco urgente</option>
+              <option value="3">3 - Urgente</option>
+              <option value="4">4 - Muito urgente</option>
+              <option value="5">5 - Precisa de ação imediata</option>
+            </select>
+            <select id="gut-t" class="p-3 border border-gray-300 rounded-md">
+              <option value="0">T (Tendência)</option>
+              <option value="1">1 - Sem tendência de piorar</option>
+              <option value="2">2 - Piora em longo prazo</option>
+              <option value="3">3 - Piora em medio prazo</option>
+              <option value="4">4 - Piora em curto prazo</option>
+              <option value="5">5 - Piora rapidamente</option>
+            </select>
+          </div>
+          <button id="add-problema-gut-btn" class="w-full bg-blue-900 text-white font-bold py-2 px-4 rounded-md shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200">Adicionar Problema</button>
+        </div>
+        <div id="gut-problemas-list" class="bg-white p-4 rounded-lg">
+          <!-- Problemas adicionados serao exibidos aqui -->
+        </div>
+      `;
+
+      document.getElementById('add-problema-gut-btn').addEventListener('click', () => {
+        const problema = document.getElementById('problema-input').value.trim();
+        const g = parseInt(document.getElementById('gut-g').value);
+        const u = parseInt(document.getElementById('gut-u').value);
+        const t = parseInt(document.getElementById('gut-t').value);
+
+        if (problema && g > 0 && u > 0 && t > 0) {
+          gutProblemas.push({ problema, g, u, t });
+          renderGutList();
+          document.getElementById('problema-input').value = '';
+          document.getElementById('gut-g').value = '0';
+          document.getElementById('gut-u').value = '0';
+          document.getElementById('gut-t').value = '0';
+        } else {
+          showMessage('Por favor, preencha todos os campos do problema.', 'error');
+        }
+      });
+      
+      renderGutList(); // Renderiza a lista inicial
+    }
+
+    function renderGutList() {
+      const listContainer = document.getElementById('gut-problemas-list');
+      listContainer.innerHTML = '';
+      if (gutProblemas.length > 0) {
+          gutProblemas.sort((a, b) => (b.g * b.u * b.t) - (a.g * a.u * a.t));
+          listContainer.innerHTML = `
+              <p class="font-semibold mb-2">Problemas adicionados (ordenados por prioridade):</p>
+              ${gutProblemas.map((p, index) => `
+                  <div class="flex justify-between items-center bg-gray-100 p-2 rounded-md mb-1">
+                      <span class="text-sm">${p.problema} (G:${p.g} U:${p.u} T:${p.t} - Total: ${p.g * p.u * p.t})</span>
+                      <button class="delete-gut-btn text-red-600 hover:text-red-800 text-sm" data-index="${index}">Excluir</button>
+                  </div>
+              `).join('')}
+          `;
+
+          listContainer.querySelectorAll('.delete-gut-btn').forEach(btn => {
+              btn.addEventListener('click', (e) => {
+                  const index = e.target.dataset.index;
+                  gutProblemas.splice(index, 1);
+                  renderGutList();
+                  showMessage('Problema excluido.', 'success');
+              });
+          });
+      } else {
+          listContainer.innerHTML = `<p class="text-gray-500 text-sm">Nenhum problema adicionado.</p>`;
+      }
+    }
+
+
+    function render5w2hInputs() {
+      matrizInputsContainer.innerHTML = `
+        <div class="mb-4">
+          <label for="titulo-5w2h" class="block text-gray-700 font-semibold mb-2">Titulo:</label>
+          <input type="text" id="titulo-5w2h" placeholder="Título do plano de ação" class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div class="mb-4">
+          <p class="text-gray-700 font-semibold mb-2">Adicionar Tarefa:</p>
+          <div class="flex flex-col sm:flex-row gap-4 mb-2">
+            <input type="text" id="what-input" placeholder="O quê?" class="flex-grow p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500">
+            <input type="text" id="why-input" placeholder="Por quê?" class="flex-grow p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500">
+            <input type="text" id="where-input" placeholder="Onde?" class="flex-grow p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500">
+          </div>
+          <div class="flex flex-col sm:flex-row gap-4 mb-2">
+            <input type="text" id="when-input" placeholder="Quando?" class="flex-grow p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500">
+            <input type="text" id="who-input" placeholder="Quem?" class="flex-grow p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500">
+            <input type="text" id="how-input" placeholder="Como?" class="flex-grow p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500">
+            <input type="text" id="howmuch-input" placeholder="Quanto?" class="flex-grow p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500">
+          </div>
+          <button id="add-tarefa-5w2h-btn" class="w-full bg-blue-900 text-white font-bold py-2 px-4 rounded-md shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200">Adicionar tarefa</button>
+        </div>
+        <div id="5w2h-tarefas-list" class="bg-white p-4 rounded-lg">
+          <!-- Tarefas adicionadas serao exibidas aqui -->
+        </div>
+      `;
+
+      document.getElementById('add-tarefa-5w2h-btn').addEventListener('click', () => {
+        const what = document.getElementById('what-input').value.trim();
+        const why = document.getElementById('why-input').value.trim();
+        const where = document.getElementById('where-input').value.trim();
+        const when = document.getElementById('when-input').value.trim();
+        const who = document.getElementById('who-input').value.trim();
+        const how = document.getElementById('how-input').value.trim();
+        const howMuch = document.getElementById('howmuch-input').value.trim();
+
+        if (what) {
+            tarefas5w2h.push({ what, why, where, when, who, how, howMuch });
+            render5w2hList();
+            document.getElementById('what-input').value = '';
+            document.getElementById('why-input').value = '';
+            document.getElementById('where-input').value = '';
+            document.getElementById('when-input').value = '';
+            document.getElementById('who-input').value = '';
+            document.getElementById('how-input').value = '';
+            document.getElementById('howmuch-input').value = '';
+        } else {
+            showMessage('Por favor, preencha todos os campos.', 'error');
+        }
+      });
+      render5w2hList();
+    }
+
+    function render5w2hList() {
+      const listContainer = document.getElementById('5w2h-tarefas-list');
+      listContainer.innerHTML = '';
+      if (tarefas5w2h.length > 0) {
+        listContainer.innerHTML = `
+          <p class="font-semibold mb-2">Tarefas adicionadas:</p>
+          ${tarefas5w2h.map((t, index) => `
+            <div class="flex justify-between items-center bg-gray-100 p-2 rounded-md mb-1">
+              <span class="text-sm">${t.what}</span>
+              <button class="delete-5w2h-btn text-red-600 hover:text-red-800 text-sm" data-index="${index}">Excluir</button>
+            </div>
+          `).join('')}
+        `;
+        listContainer.querySelectorAll('.delete-5w2h-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const index = e.target.dataset.index;
+                tarefas5w2h.splice(index, 1);
+                render5w2hList();
+                showMessage('Tarefa excluída.', 'success');
+            });
+        });
+      } else {
+        listContainer.innerHTML = `<p class="text-gray-500 text-sm">Nenhuma tarefa adicionada.</p>`;
+      }
+    }
+    
+    // Funcoes para renderizar as matrizes
+    function renderMatrizSwot(data) {
+      matrizOutput.innerHTML = `
+        <div id="matriz-content" class="p-5 w-full bg-white">
+          <h3 class="text-xl font-bold text-gray-800 text-center mb-4">${data.titulo}</h3>
+          <div class="grid grid-cols-2 gap-4 h-full">
+            <div class="p-4 rounded-lg bg-green-200 flex flex-col justify-between">
+              <h4 class="font-bold text-green-800">Forças</h4>
+              <p class="text-sm text-green-700 whitespace-pre-wrap">${data.forcas}</p>
+            </div>
+            <div class="p-4 rounded-lg bg-red-200 flex flex-col justify-between">
+              <h4 class="font-bold text-red-800">Fraquezas</h4>
+              <p class="text-sm text-red-700 whitespace-pre-wrap">${data.fraquezas}</p>
+            </div>
+            <div class="p-4 rounded-lg bg-blue-200 flex flex-col justify-between">
+              <h4 class="font-bold text-blue-800">Oportunidades</h4>
+              <p class="text-sm text-blue-700 whitespace-pre-wrap">${data.oportunidades}</p>
+            </div>
+            <div class="p-4 rounded-lg bg-yellow-200 flex flex-col justify-between">
+              <h4 class="font-bold text-yellow-800">Ameaças</h4>
+              <p class="text-sm text-yellow-700 whitespace-pre-wrap">${data.ameacas}</p>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+    
+    // Funcao para obter a classe de cor com base na pontuacao total
+    function getGutColorClass(total) {
+        if (total <= 10) return '#C2E1F5';
+        if (total <= 30) return '#DCFCE7';
+        if (total <= 60) return '#FEF9C3';
+        if (total <= 90) return '#FFEDD5';
+        if (total <= 125) return '#FEE2E2';
+        return '#f9b1b4';
+    }
+
+    function renderMatrizGut(data) {
+        data.problemas.sort((a, b) => (b.g * b.u * b.t) - (a.g * a.u * a.t));
+
+        matrizOutput.innerHTML = `
+          <div id="matriz-content" class="p-5 w-full bg-white">
+            <h3 class="text-xl font-bold text-gray-800 text-center mb-4">${data.titulo}</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border border-gray-200 rounded-lg shadow-md">
+                    <thead>
+                        <tr class="bg-gray-100 text-gray-700 text-sm font-semibold">
+                            <th class="p-3 border-b-2 text-left">Problema</th>
+                            <th class="p-3 border-b-2">G</th>
+                            <th class="p-3 border-b-2">U</th>
+                            <th class="p-3 border-b-2">T</th>
+                            <th class="p-3 border-b-2">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.problemas.map(p => {
+                            const total = p.g * p.u * p.t;
+                            const colorStyle = getGutColorClass(total);
+                            return `
+                                <tr style="background-color: ${colorStyle}">
+                                    <td class="p-3 border-b text-sm text-left text-gray-700">${p.problema}</td>
+                                    <td class="p-3 border-b text-center text-sm text-gray-700">${p.g}</td>
+                                    <td class="p-3 border-b text-center text-sm text-gray-700">${p.u}</td>
+                                    <td class="p-3 border-b text-center text-sm text-gray-700">${p.t}</td>
+                                    <td class="p-3 border-b text-center text-sm font-bold text-gray-800">${total}</td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            </div>
+          </div>
+        `;
+    }
+
+    function render5w2h(data) {
+        matrizOutput.innerHTML = `
+          <div id="matriz-content" class="p-5 w-full bg-white">
+            <h3 class="text-xl font-bold text-gray-800 text-center mb-4">${data.titulo}</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border border-gray-200 rounded-lg shadow-md">
+                    <thead>
+                        <tr class="bg-gray-100 text-gray-700 text-sm font-semibold">
+                            <th class="p-3 border-b-2 text-left">O quê?</th>
+                            <th class="p-3 border-b-2">Por quê?</th>
+                            <th class="p-3 border-b-2">Onde?</th>
+                            <th class="p-3 border-b-2">Quando?</th>
+                            <th class="p-3 border-b-2">Quem?</th>
+                            <th class="p-3 border-b-2">Como?</th>
+                            <th class="p-3 border-b-2">Quanto?</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.tarefas.map((t, index) => {
+                            const rowClass = index % 2 === 0 ? 'bg-gray-50' : 'bg-white';
+                            return `
+                                <tr class="${rowClass}">
+                                    <td class="p-3 border-b text-sm text-left text-gray-700 break-words">${t.what}</td>
+                                    <td class="p-3 border-b text-sm text-gray-700 break-words">${t.why}</td>
+                                    <td class="p-3 border-b text-sm text-gray-700 break-words">${t.where}</td>
+                                    <td class="p-3 border-b text-sm text-gray-700 break-words">${t.when}</td>
+                                    <td class="p-3 border-b text-sm text-gray-700 break-words">${t.who}</td>
+                                    <td class="p-3 border-b text-sm text-gray-700 break-words">${t.how}</td>
+                                    <td class="p-3 border-b text-sm text-gray-700 break-words">${t.howMuch}</td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            </div>
+          </div>
+        `;
+    }
+    
+    function showOutputs() {
+        matrizButtons.classList.remove('hidden');
+        placeholderText.classList.add('hidden');
+    }
+
+    // Adiciona o "checked" inicial para o radio button e o estilo visual
+    const initialRadio = document.querySelector('input[name="matriz-type"][checked]');
+    if (initialRadio) {
+      const initialLabel = initialRadio.closest('label');
+      initialLabel.classList.add('border-blue-500');
+      renderSwotInputs(); // Renderiza os inputs da SWOT por padrao
+    }
+
+    // Alterna os campos de input com base no radio selecionado
+    matrizLabels.forEach(label => {
+      label.addEventListener('click', () => {
+        matrizLabels.forEach(l => l.classList.remove('border-blue-500'));
+        label.classList.add('border-blue-500');
+        
+        const radio = label.querySelector('input[type="radio"]');
+        currentMatrizType = radio.value;
+        matrizOutput.innerHTML = `<div id="placeholder-text" class="text-center text-gray-400 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">Sua matriz aparecera aqui</div>`;
+        matrizButtons.classList.add('hidden');
+        gutProblemas = []; // Limpa a lista ao mudar de matriz
+        tarefas5w2h = [];
+
+        switch (currentMatrizType) {
+          case 'swot':
+            renderSwotInputs();
+            break;
+          case 'gut':
+            renderGutInputs();
+            break;
+          case '5w2h':
+            render5w2hInputs();
+            break;
+        }
+      });
+    });
+    
+    // Logica para gerar a matriz
+    gerarMatrizBtn.addEventListener('click', () => {
+      try {
+        let data = {};
+        switch (currentMatrizType) {
+          case 'swot':
+            const tituloSwot = "SWOT:" + document.getElementById('titulo-swot').value.trim();
+            const forcasSwot = document.getElementById('forcas-swot').value.trim();
+            const fraquezasSwot = document.getElementById('fraquezas-swot').value.trim();
+            const oportunidadesSwot = document.getElementById('oportunidades-swot').value.trim();
+            const ameacasSwot = document.getElementById('ameacas-swot').value.trim();
+            
+            if (!tituloSwot || !forcasSwot || !fraquezasSwot || !oportunidadesSwot || !ameacasSwot) {
+                throw new Error('Por favor, preencha todos os campos da matriz SWOT.');
+            }
+            data = {
+              titulo: tituloSwot,
+              forcas: forcasSwot,
+              fraquezas: fraquezasSwot,
+              oportunidades: oportunidadesSwot,
+              ameacas: ameacasSwot
+            };
+            renderMatrizSwot(data);
+            break;
+          case 'gut':
+            const tituloGut = "GUT:" + document.getElementById('titulo-gut').value.trim();
+            if (!tituloGut || gutProblemas.length === 0) {
+                throw new Error('Por favor, preencha o título e adicione pelo menos um problema para a matriz GUT.');
+            }
+            data = {
+                titulo: tituloGut,
+                problemas: gutProblemas
+            };
+            renderMatrizGut(data);
+            break;
+          case '5w2h':
+            const titulo5w2h = "5W2H:" + document.getElementById('titulo-5w2h').value.trim();
+            if (!titulo5w2h || tarefas5w2h.length === 0) {
+              throw new Error('Por favor, preencha o título e adicione pelo menos uma tarefa para a matriz 5W2H.');
+            }
+            data = {
+                titulo: titulo5w2h,
+                tarefas: tarefas5w2h
+            };
+            render5w2h(data);
+            break;
+        }
+        showOutputs();
+        showMessage('Matriz gerada com sucesso!', 'success');
+      } catch (error) {
+        showMessage(error.message, 'error');
+        matrizOutput.innerHTML = `<div id="placeholder-text" class="text-center text-gray-400 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">Sua matriz aparecerá aqui</div>`;
+        matrizButtons.classList.add('hidden');
+      }
+    });
+
+    // Logica para download da imagem
+    downloadMatrizBtn.addEventListener('click', () => {
+      const matrizContent = document.getElementById('matriz-content');
+      html2canvas(matrizContent, {
+        backgroundColor: '#ffffff',
+        scale: 2
+      }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = `matriz-${currentMatrizType}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      });
+    });
+    
+    // Logica para baixar o arquivo de texto da matriz
+    downloadTxtBtn.addEventListener('click', () => {
+        let textContent = '';
+        const titulo = matrizOutput.querySelector('h3').textContent;
+        textContent += `Título: ${titulo}\n\n`;
+
+        if (currentMatrizType === 'swot') {
+            const forcas = document.getElementById('forcas-swot').value.trim();
+            const fraquezas = document.getElementById('fraquezas-swot').value.trim();
+            const oportunidades = document.getElementById('oportunidades-swot').value.trim();
+            const ameacas = document.getElementById('ameacas-swot').value.trim();
+            
+            textContent += `Forças:\n${forcas}\n\n`;
+            textContent += `Fraquezas:\n${fraquezas}\n\n`;
+            textContent += `Oportunidades:\n${oportunidades}\n\n`;
+            textContent += `Ameaças:\n${ameacas}\n\n`;
+
+        } else if (currentMatrizType === 'gut') {
+            textContent += `Priorização de Problemas:\n\n`;
+            gutProblemas.forEach(p => {
+                const total = p.g * p.u * p.t;
+                textContent += `${p.problema} (G:${p.g}, U:${p.u}, T:${p.t} - Prioridade: ${total})\n`;
+            });
+            
+        } else if (currentMatrizType === '5w2h') {
+            textContent += `Plano de Ação 5W2H:\n\n`;
+            tarefas5w2h.forEach(t => {
+                textContent += `O quê? ${t.what}\n`;
+                textContent += `Por quê? ${t.why}\n`;
+                textContent += `Onde? ${t.where}\n`;
+                textContent += `Quando? ${t.when}\n`;
+                textContent += `Quem? ${t.who}\n`;
+                textContent += `Como? ${t.how}\n`;
+                textContent += `Quanto? ${t.howMuch}\n`;
+                textContent += `\n`;
+            });
+        }
+        
+        const blob = new Blob([textContent], { type: 'text/plain;charset=utf-8' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `matriz-${currentMatrizType}.txt`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    });
+
+    // Logica para compartilhar via WhatsApp
+    shareWhatsappBtn.addEventListener('click', () => {
+      let shareText = '';
+      const titulo = matrizOutput.querySelector('h3').textContent;
+      shareText += `*${titulo}*\n\n`;
+
+      if (currentMatrizType === 'swot') {
+        const forcas = document.getElementById('forcas-swot').value.trim();
+        const fraquezas = document.getElementById('fraquezas-swot').value.trim();
+        const oportunidades = document.getElementById('oportunidades-swot').value.trim();
+        const ameacas = document.getElementById('ameacas-swot').value.trim();
+        
+        shareText += `*Forças:*\n${forcas}\n\n`;
+        shareText += `*Fraquezas:*\n${fraquezas}\n\n`;
+        shareText += `*Oportunidades:*\n${oportunidades}\n\n`;
+        shareText += `*Ameaças:*\n${ameacas}\n\n`;
+
+      } else if (currentMatrizType === 'gut') {
+        shareText += `*Priorização de Problemas:*\n`;
+        gutProblemas.forEach(p => {
+          const total = p.g * p.u * p.t;
+          shareText += `${p.problema} (G:${p.g}, U:${p.u}, T:${p.t} - Prioridade: ${total})\n`;
+        });
+        
+      } else if (currentMatrizType === '5w2h') {
+        shareText += `*Plano de Ação 5W2H:*\n`;
+        tarefas5w2h.forEach(t => {
+          shareText += `\n*O quê?* ${t.what}\n`;
+          shareText += `*Por quê?* ${t.why}\n`;
+          shareText += `*Onde?* ${t.where}\n`;
+          shareText += `*Quando?* ${t.when}\n`;
+          shareText += `*Quem?* ${t.who}\n`;
+          shareText += `*Como?* ${t.how}\n`;
+          shareText += `*Quanto?* ${t.howMuch}\n`;
+        });
+      }
+
+      const encodedText = encodeURIComponent(shareText);
+      const whatsappUrl = `https://api.whatsapp.com/send?text=${encodedText}`;
+      window.open(whatsappUrl, '_blank');
+    });
+  });
+</script>

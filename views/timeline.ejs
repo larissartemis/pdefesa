@@ -1,0 +1,542 @@
+<div class="p-4 sm:p-8 bg-gray-100 min-h-screen">
+  <!-- Tela Inicial de Opções -->
+  <div id="initial-screen" class="bg-white p-8 rounded-lg shadow-md w-full mx-auto">
+    <h2 class="text-3xl sm:text-4xl font-bold text-gray-800 mb-6">Linha do tempo</h2>
+    <p class="mb-6 text-gray-600">O que você gostaria de fazer?</p>
+    <div class="flex flex-col gap-4">
+      <button id="create-new-btn" class="bg-blue-900 text-white font-bold py-3 px-6 rounded-md shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-200">
+        Criar nova linha do tempo
+      </button>
+      <label for="upload-file" class="text-center bg-gray-200 text-gray-700 font-bold py-3 px-6 rounded-md shadow-lg cursor-pointer hover:bg-gray-300 transition duration-200">
+        Continuar linha do tempo anterior
+        <input type="file" id="upload-file" class="hidden" accept=".txt">
+      </label>
+      <label for="merge-files" class="text-center bg-blue-900 text-white font-bold py-3 px-6 rounded-md shadow-lg cursor-pointer hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 transition duration-200">
+        Mesclar 2 linhas do tempo
+        <input type="file" id="merge-files" class="hidden" multiple accept=".txt">
+      </label>
+      <!-- Div para mensagens de feedback na tela inicial -->
+      <div id="message-box" class="mt-4 p-3 rounded-md hidden opacity-0 transition-opacity duration-1000"></div>
+    </div>
+  </div>
+
+  <!-- Tela da Linha do Tempo (inicialmente oculta) -->
+  <div id="timeline-editor" class="hidden bg-white p-8 rounded-lg shadow-md w-full text-center mx-auto">
+    <div class="flex justify-between items-center mb-6">
+      <h3 class="text-3xl sm:text-4xl font-bold text-gray-800">Linha do tempo</h3>
+      <button id="back-btn" class="bg-gray-500 text-white font-bold py-2 px-4 rounded-md shadow-lg hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition duration-200">
+        Voltar
+      </button>
+    </div>
+    
+    <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 mb-6">
+        <label for="timeline-title" class="text-gray-700 font-semibold text-lg">Título:</label>
+        <input type="text" id="timeline-title" placeholder="Título da linha do tempo" class="flex-grow p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200">
+      </div>
+
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 mb-6 flex-wrap">
+        <div class="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+          <label for="event-date" class="text-gray-700 font-semibold text-lg">Data:</label>
+          <input type="date" id="event-date" class="p-2 border border-gray-300 rounded-md flex-grow w-full">
+        </div>
+        
+        <div class="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+          <label for="event-time" class="text-gray-700 font-semibold text-lg">Hora:</label>
+          <input type="time" id="event-time" class="p-2 border border-gray-300 rounded-md flex-grow w-full">
+        </div>
+        
+        <div class="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto flex-grow">
+          <label for="event-description" class="text-gray-700 font-semibold text-lg">Descrição:</label>
+          <input type="text" id="event-description" placeholder="Descrição do evento" class="flex-grow p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 w-full">
+        </div>
+        
+        <button id="add-event-btn" class="bg-blue-900 text-white font-bold py-2 px-4 rounded-md shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-200 w-full sm:w-auto">Adicionar evento</button>
+      </div>
+      
+      <!-- Div para mensagens de feedback -->
+      <div id="message-box-editor" class="mt-4 p-3 rounded-md hidden opacity-0 transition-opacity duration-1000"></div>
+    </div>
+    
+    <div id="timeline-results" class="hidden">
+      <hr class="my-8 border-gray-300">
+      
+      <div class="flex justify-between items-center mb-4">
+        <h3 id="events-header" class="text-2xl font-bold text-gray-800"></h3>
+        <button id="toggle-sort-btn" class="bg-gray-200 text-gray-700 font-semibold py-1 px-3 rounded-md shadow-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 transition duration-200 text-sm">
+          Ordenar: mais antigo → mais recente
+        </button>
+      </div>
+      <div id="events-list" class="bg-white p-6 rounded-lg shadow-md">
+        <!-- Eventos serão inseridos aqui pelo JavaScript -->
+      </div>
+      
+      <div class="flex flex-col sm:flex-row justify-center gap-4 mt-8">
+        <button id="save-timeline-btn" class="bg-blue-900 text-white font-bold py-3 px-6 rounded-md shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-200">Salvar linha do tempo</button>
+        <button id="share-whatsapp-btn" class="bg-green-700 text-white font-bold py-3 px-6 rounded-md shadow-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2 transition duration-200">Compartilhar no WhatsApp</button>
+      </div>
+    </div>
+
+    <div id="empty-state" class="text-center p-6 bg-white rounded-lg shadow-md text-gray-600 font-medium">
+      <p>Adicione um evento para criar sua linha do tempo.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Tailwind CSS CDN -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const initialScreen = document.getElementById('initial-screen');
+    const timelineEditor = document.getElementById('timeline-editor');
+    const createNewBtn = document.getElementById('create-new-btn');
+    const uploadFile = document.getElementById('upload-file');
+    const mergeFilesBtn = document.getElementById('merge-files');
+    const backBtn = document.getElementById('back-btn');
+
+    const titleInput = document.getElementById('timeline-title');
+    const dateInput = document.getElementById('event-date');
+    const timeInput = document.getElementById('event-time');
+    const descriptionInput = document.getElementById('event-description');
+    const addEventBtn = document.getElementById('add-event-btn');
+    const saveTimelineBtn = document.getElementById('save-timeline-btn');
+    const shareWhatsappBtn = document.getElementById('share-whatsapp-btn');
+    const eventsList = document.getElementById('events-list');
+    const toggleSortBtn = document.getElementById('toggle-sort-btn');
+    
+    const timelineResults = document.getElementById('timeline-results');
+    const emptyState = document.getElementById('empty-state');
+    const eventsHeader = document.getElementById('events-header');
+    const messageBoxInitial = document.getElementById('message-box');
+    const messageBoxEditor = document.getElementById('message-box-editor');
+    
+    // Armazena os eventos e o mapeamento de cores
+    let events = [];
+    let isAscendingSort = true;
+    const fileColorMap = new Map();
+    let fileCounter = 0;
+
+    const colors = [
+      '#e0f2fe', // blue-100
+      '#c2e1f5', // um tom de azul pastel
+      '#f8fafc'  // Cor padrão para eventos criados manualmente
+    ];
+
+    function getColorForFile(filename) {
+      if (!fileColorMap.has(filename)) {
+        fileColorMap.set(filename, colors[fileCounter % (colors.length - 1)]); // -1 para não usar a cor padrão
+        fileCounter++;
+      }
+      return fileColorMap.get(filename);
+    }
+    
+    // Função para mostrar mensagens na tela com fade out
+    function showMessage(message, type, targetBox) {
+      if (!targetBox) {
+        return; // Retorna se a caixa de mensagem não for definida
+      }
+      targetBox.textContent = message;
+      targetBox.classList.remove('hidden', 'bg-red-100', 'text-red-800', 'bg-green-100', 'text-green-800', 'opacity-0');
+      if (type === 'error') {
+        targetBox.classList.add('bg-red-100', 'text-red-800');
+      } else if (type === 'success') {
+        targetBox.classList.add('bg-green-100', 'text-green-800');
+      }
+      targetBox.classList.remove('opacity-0');
+      setTimeout(() => {
+        targetBox.classList.add('opacity-0');
+        setTimeout(() => targetBox.classList.add('hidden'), 1000);
+      }, 3000);
+    }
+
+    // Lógica para mostrar o editor de linha do tempo
+    function showTimelineEditor() {
+      initialScreen.classList.add('hidden');
+      timelineEditor.classList.remove('hidden');
+      // Atualiza o estado da UI baseado no número de eventos
+      if (events.length > 0) {
+        emptyState.classList.add('hidden');
+        timelineResults.classList.remove('hidden');
+      } else {
+        emptyState.classList.remove('hidden');
+        timelineResults.classList.add('hidden');
+      }
+      renderEvents();
+    }
+    
+    // Lógica para voltar para a tela inicial
+    function showInitialScreen() {
+      timelineEditor.classList.add('hidden');
+      initialScreen.classList.remove('hidden');
+      // Limpar os campos ao voltar
+      titleInput.value = '';
+      dateInput.value = '';
+      timeInput.value = '';
+      descriptionInput.value = '';
+      events = [];
+    }
+    
+    // Lógica para o botão "Criar nova linha do tempo"
+    createNewBtn.addEventListener('click', () => {
+      events = [];
+      titleInput.value = '';
+      fileColorMap.clear();
+      showTimelineEditor();
+    });
+    
+    // Lógica para o botão "Voltar"
+    backBtn.addEventListener('click', showInitialScreen);
+
+    // Lógica para o upload de arquivo
+    uploadFile.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) {
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const fileContent = event.target.result;
+        try {
+          parseFileContent(fileContent);
+          showTimelineEditor();
+          showMessage('Linha do tempo carregada com sucesso.', 'success', messageBoxEditor);
+        } catch (error) {
+          showMessage('Erro ao carregar o arquivo. Verifique se o formato está correto.', 'error', messageBoxInitial);
+          console.error(error);
+        }
+      };
+      reader.readAsText(file);
+    });
+    
+    // Lógica para mesclar arquivos
+    mergeFilesBtn.addEventListener('change', (e) => {
+        const files = e.target.files;
+        if (files.length !== 2) {
+            showMessage('Por favor, selecione exatamente dois arquivos para mesclar.', 'error', messageBoxInitial);
+            return;
+        }
+
+        const readers = [];
+        events = []; // Limpa os eventos existentes
+        fileColorMap.clear();
+
+        for (let i = 0; i < files.length; i++) {
+            readers.push(new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const content = event.target.result;
+                        const filename = files[i].name.replace('.txt', ''); // Remove a extensão .txt
+                        const fileEvents = parseFileContentWithTags(content, filename);
+                        resolve(fileEvents);
+                    } catch (error) {
+                        reject(error);
+                    }
+                };
+                reader.onerror = reject;
+                reader.readAsText(files[i]);
+            }));
+        }
+
+        Promise.all(readers)
+            .then(results => {
+                const [events1, events2] = results;
+                events = [...events1, ...events2];
+                // Definir um novo título para a linha do tempo mesclada
+                titleInput.value = "Linha do Tempo Mesclada";
+                showTimelineEditor();
+                showMessage('Linhas do tempo mescladas com sucesso!', 'success', messageBoxEditor);
+            })
+            .catch(error => {
+                showMessage(`Erro ao mesclar arquivos: ${error.message}`, 'error', messageBoxInitial);
+                console.error(error);
+            });
+    });
+
+    // Função para analisar o conteúdo do arquivo com tags
+    function parseFileContentWithTags(content, filename) {
+        const lines = content.split('\n').filter(line => line.trim() !== '');
+        if (lines.length === 0) {
+            return [];
+        }
+        
+        const fileEvents = [];
+        const filenameTag = `(${filename})`;
+        const color = getColorForFile(filename);
+
+        // Inicia a partir da segunda linha, ignorando apenas o título
+        for (let i = 1; i < lines.length; i++) {
+            const line = lines[i];
+            const match = line.match(/^(\d{2}\/\d{2}\/\d{4})\s(\d{2}:\d{2})\s-\s(.+)/);
+            if (match) {
+                const [full, date, time, description] = match;
+                // Converte o formato de data dd/mm/yyyy para yyyy-mm-dd para ser compatível com input[type=date]
+                const [day, month, year] = date.split('/');
+                const formattedDate = `${year}-${month}-${day}`;
+                fileEvents.push({
+                    date: formattedDate,
+                    time: time,
+                    description: `${filenameTag} ${description}`,
+                    originColor: color
+                });
+            } else {
+                console.warn(`Linha ignorada devido a formato inválido: ${line}`);
+            }
+        }
+        return fileEvents;
+    }
+
+    // Função para analisar o conteúdo do arquivo
+    function parseFileContent(content) {
+      const lines = content.split('\n').filter(line => line.trim() !== '');
+      if (lines.length === 0) {
+        throw new Error('Arquivo vazio.');
+      }
+      
+      const titleLine = lines[0];
+      if (titleLine.startsWith('Título:')) {
+        titleInput.value = titleLine.substring('Título:'.length).trim();
+      } else {
+        throw new Error('Formato do arquivo inválido. Título não encontrado.');
+      }
+
+      // Limpa eventos anteriores
+      events = [];
+      
+      // Inicia a partir da segunda linha, ignorando apenas o título
+      for (let i = 1; i < lines.length; i++) {
+        const line = lines[i];
+        const match = line.match(/^(\d{2}\/\d{2}\/\d{4})\s(\d{2}:\d{2})\s-\s(.+)/);
+        if (match) {
+          const [full, date, time, description] = match;
+          // Converte o formato de data dd/mm/yyyy para yyyy-mm-dd para ser compatível com input[type=date]
+          const [day, month, year] = date.split('/');
+          const formattedDate = `${year}-${month}-${day}`;
+          events.push({
+            date: formattedDate,
+            time: time,
+            description: description,
+            originColor: '#f8fafc' // Cor padrão para eventos criados manualmente
+          });
+        } else {
+          console.warn(`Linha ignorada devido a formato inválido: ${line}`);
+        }
+      }
+    }
+
+    // Função para adicionar um novo evento
+    addEventBtn.addEventListener('click', () => {
+      const date = dateInput.value;
+      const time = timeInput.value;
+      const description = descriptionInput.value.trim();
+      const title = titleInput.value.trim();
+
+      if (!title) {
+        showMessage('Insira um título para a linha do tempo.', 'error', messageBoxEditor);
+        return;
+      }
+
+      if (date && time && description) {
+        const eventItem = {
+          date: date,
+          time: time,
+          description: description,
+          originColor: '#f8fafc' // Cor padrão para eventos criados manualmente
+        };
+        events.push(eventItem);
+        renderEvents();
+        showMessage('Evento adicionado com sucesso.', 'success', messageBoxEditor);
+        
+        // Exibe a seção de resultados se for o primeiro evento
+        if (events.length === 1) {
+          emptyState.classList.add('hidden');
+          timelineResults.classList.remove('hidden');
+        }
+        
+        // Limpa os campos de input
+        dateInput.value = '';
+        timeInput.value = '';
+        descriptionInput.value = '';
+      } else {
+        showMessage('Preencha todos os campos do evento.', 'error', messageBoxEditor);
+      }
+    });
+    
+    // Lógica para editar e excluir eventos in-line
+    eventsList.addEventListener('click', (e) => {
+      const target = e.target;
+      const parentEvent = target.closest('.event-item');
+      if (!parentEvent) return;
+
+      const index = parseInt(parentEvent.dataset.index);
+      const eventToEdit = events[index];
+      
+      if (target.classList.contains('edit-btn')) {
+        // Entra no modo de edição
+        parentEvent.innerHTML = `
+          <div class="flex-grow flex flex-col sm:flex-row items-stretch sm:items-center gap-2 flex-wrap">
+            <div class="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+              <label for="edit-date-${index}" class="text-gray-700 font-semibold">Data:</label>
+              <input type="date" id="edit-date-${index}" value="${eventToEdit.date}" class="p-2 border border-gray-300 rounded-md flex-grow w-full">
+            </div>
+            
+            <div class="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+              <label for="edit-time-${index}" class="text-gray-700 font-semibold">Hora:</label>
+              <input type="time" id="edit-time-${index}" value="${eventToEdit.time}" class="p-2 border border-gray-300 rounded-md flex-grow w-full">
+            </div>
+            
+            <div class="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto flex-grow">
+              <label for="edit-description-${index}" class="text-gray-700 font-semibold">Descrição:</label>
+              <input type="text" id="edit-description-${index}" value="${eventToEdit.description}" class="flex-grow p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 w-full">
+            </div>
+          </div>
+          <div class="flex gap-2 flex-shrink-0">
+            <button class="save-edit-btn bg-green-500 text-white font-bold py-1 px-2 rounded-md hover:bg-green-600 transition duration-200" data-index="${index}">Salvar</button>
+            <button class="cancel-edit-btn bg-gray-500 text-white font-bold py-1 px-2 rounded-md hover:bg-gray-600 transition duration-200">Cancelar</button>
+          </div>
+        `;
+      } else if (target.classList.contains('delete-btn')) {
+        // Substitui os botões de edição por botões de confirmação de exclusão
+        const originalButtons = parentEvent.querySelector('.flex.gap-2.flex-shrink-0');
+        originalButtons.innerHTML = `
+          <span class="text-sm font-semibold text-gray-600">Tem certeza?</span>
+          <button class="confirm-delete-btn bg-red-600 text-white font-bold py-1 px-2 rounded-md hover:bg-red-700 transition duration-200" data-index="${index}">Sim</button>
+          <button class="cancel-delete-btn bg-gray-500 text-white font-bold py-1 px-2 rounded-md hover:bg-gray-600 transition duration-200">Não</button>
+        `;
+      } else if (target.classList.contains('confirm-delete-btn')) {
+        // Lógica de exclusão após confirmação
+        const index = parseInt(target.dataset.index);
+        events.splice(index, 1);
+        renderEvents();
+        showMessage('Evento excluído.', 'success', messageBoxEditor);
+        if (events.length === 0) {
+          emptyState.classList.remove('hidden');
+          timelineResults.classList.add('hidden');
+          eventsHeader.textContent = '';
+        }
+      } else if (target.classList.contains('cancel-delete-btn')) {
+        // Retorna aos botões originais
+        renderEvents();
+      } else if (target.classList.contains('save-edit-btn')) {
+        const newDate = document.getElementById(`edit-date-${index}`).value;
+        const newTime = document.getElementById(`edit-time-${index}`).value;
+        const newDescription = document.getElementById(`edit-description-${index}`).value.trim();
+
+        if (newDate && newTime && newDescription) {
+          events[index] = {
+            date: newDate,
+            time: newTime,
+            description: newDescription,
+            originColor: events[index].originColor
+          };
+          renderEvents();
+          showMessage('Evento atualizado com sucesso.', 'success', messageBoxEditor);
+        } else {
+          showMessage('Por favor, preencha todos os campos para salvar.', 'error', messageBoxEditor);
+        }
+      } else if (target.classList.contains('cancel-edit-btn')) {
+        renderEvents();
+      }
+    });
+
+    // Lógica para alternar a ordenação
+    toggleSortBtn.addEventListener('click', () => {
+      isAscendingSort = !isAscendingSort;
+      renderEvents();
+      if (isAscendingSort) {
+        toggleSortBtn.textContent = 'Ordenar: Mais antigo → Mais recente';
+      } else {
+        toggleSortBtn.textContent = 'Ordenar: Mais recente → Mais antigo';
+      }
+    });
+
+    // Função para renderizar os eventos na página
+    function renderEvents() {
+      eventsList.innerHTML = ''; // Limpa a lista antes de renderizar
+      
+      const title = titleInput.value.trim();
+      if (title) {
+        eventsHeader.textContent = title;
+      }
+      
+      // Ordena os eventos por data e hora
+      events.sort((a, b) => {
+        const dateTimeA = new Date(`${a.date}T${a.time}`);
+        const dateTimeB = new Date(`${b.date}T${b.time}`);
+        return isAscendingSort ? dateTimeA - dateTimeB : dateTimeB - dateTimeA;
+      });
+
+      events.forEach((event, index) => {
+        const eventDiv = document.createElement('div');
+        eventDiv.className = `event-item p-4 mb-2 rounded-md shadow-sm flex justify-between items-center`;
+        eventDiv.style.backgroundColor = event.originColor;
+        eventDiv.dataset.index = index; // Adiciona o índice como um atributo de dados
+        eventDiv.innerHTML = `
+          <span>${event.date.split('-').reverse().join('/')} ${event.time} - ${event.description}</span>
+          <div class="flex gap-2 flex-shrink-0">
+            <button class="edit-btn bg-yellow-500 text-white font-bold py-1 px-2 rounded-md hover:bg-yellow-600 transition duration-200">Editar</button>
+            <button class="delete-btn bg-red-600 text-white font-bold py-1 px-2 rounded-md hover:bg-red-700 transition duration-200">Excluir</button>
+          </div>
+        `;
+        eventsList.appendChild(eventDiv);
+      });
+    }
+
+    // Função para salvar a linha do tempo em um arquivo .txt
+    saveTimelineBtn.addEventListener('click', () => {
+      const title = titleInput.value.trim();
+      if (!title) {
+        showMessage('Por favor, insira um título para a linha do tempo.', 'error', messageBoxEditor);
+        return;
+      }
+
+      if (events.length === 0) {
+        showMessage('Adicione pelo menos um evento para salvar.', 'error', messageBoxEditor);
+        return;
+      }
+      
+      let textContent = `Título: ${title}\n`;
+      textContent += '\n'; // Adiciona uma linha em branco
+      
+      events.forEach(event => {
+        textContent += `${event.date.split('-').reverse().join('/')} ${event.time} - ${event.description}\n`;
+      });
+
+      const blob = new Blob([textContent], { type: 'text/plain;charset=utf-8' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `${title.replace(/[^a-z0-9]/gi, '_')}.txt`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    });
+
+    // Função para compartilhar a linha do tempo no WhatsApp
+    shareWhatsappBtn.addEventListener('click', () => {
+      const title = titleInput.value.trim();
+      if (!title) {
+        showMessage('Por favor, insira um título para a linha do tempo.', 'error', messageBoxEditor);
+        return;
+      }
+
+      if (events.length === 0) {
+        showMessage('Adicione pelo menos um evento para compartilhar.', 'error', messageBoxEditor);
+        return;
+      }
+
+      let shareText = `*${title}*\n`;
+      shareText += '\n';
+      
+      events.forEach(event => {
+        shareText += `${event.date.split('-').reverse().join('/')} ${event.time} - ${event.description}\n`;
+      });
+
+      const encodedText = encodeURIComponent(shareText);
+      const whatsappUrl = `https://api.whatsapp.com/send?text=${encodedText}`;
+      
+      window.open(whatsappUrl, '_blank');
+    });
+  });
+</script>
