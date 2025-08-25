@@ -65,6 +65,12 @@
 <!-- Tailwind CSS CDN -->
 <script src="https://cdn.tailwindcss.com"></script>
 
+<style>
+  #matriz-content {
+      min-height: 400px;
+  }
+</style>
+
 <script>
   document.addEventListener('DOMContentLoaded', () => {
     const backBtn = document.getElementById('back-btn');
@@ -83,7 +89,6 @@
     let currentMatrizType = 'swot';
     let gutProblemas = [];
     let tarefas5w2h = [];
-
     // Funcao para mostrar mensagens na tela com fade out
     function showMessage(message, type) {
       messageBox.textContent = message;
@@ -106,7 +111,6 @@
     backBtn.addEventListener('click', () => {
       window.location.href = '/';
     });
-
     // Funcoes para renderizar os inputs de cada matriz
     function renderSwotInputs() {
       matrizInputsContainer.innerHTML = `
@@ -176,7 +180,6 @@
           <!-- Problemas adicionados serao exibidos aqui -->
         </div>
       `;
-
       document.getElementById('add-problema-gut-btn').addEventListener('click', () => {
         const problema = document.getElementById('problema-input').value.trim();
         const g = parseInt(document.getElementById('gut-g').value);
@@ -194,7 +197,6 @@
           showMessage('Por favor, preencha todos os campos do problema.', 'error');
         }
       });
-      
       renderGutList(); // Renderiza a lista inicial
     }
 
@@ -212,7 +214,6 @@
                   </div>
               `).join('')}
           `;
-
           listContainer.querySelectorAll('.delete-gut-btn').forEach(btn => {
               btn.addEventListener('click', (e) => {
                   const index = e.target.dataset.index;
@@ -252,7 +253,6 @@
           <!-- Tarefas adicionadas serao exibidas aqui -->
         </div>
       `;
-
       document.getElementById('add-tarefa-5w2h-btn').addEventListener('click', () => {
         const what = document.getElementById('what-input').value.trim();
         const why = document.getElementById('why-input').value.trim();
@@ -263,7 +263,7 @@
         const howMuch = document.getElementById('howmuch-input').value.trim();
 
         if (what) {
-            tarefas5w2h.push({ what, why, where, when, who, how, howMuch });
+          tarefas5w2h.push({ what, why, where, when, who, how, howMuch });
             render5w2hList();
             document.getElementById('what-input').value = '';
             document.getElementById('why-input').value = '';
@@ -313,19 +313,19 @@
           <div class="grid grid-cols-2 gap-4 h-full">
             <div class="p-4 rounded-lg bg-green-200 flex flex-col justify-between">
               <h4 class="font-bold text-green-800">Forças</h4>
-              <p class="text-sm text-green-700 whitespace-pre-wrap">${data.forcas}</p>
+              <p class="text-sm text-green-700 whitespace-pre-wrap break-words" style="word-break: break-word;">${data.forcas}</p>
             </div>
             <div class="p-4 rounded-lg bg-red-200 flex flex-col justify-between">
               <h4 class="font-bold text-red-800">Fraquezas</h4>
-              <p class="text-sm text-red-700 whitespace-pre-wrap">${data.fraquezas}</p>
+              <p class="text-sm text-red-700 whitespace-pre-wrap break-words" style="word-break: break-word;">${data.fraquezas}</p>
             </div>
             <div class="p-4 rounded-lg bg-blue-200 flex flex-col justify-between">
               <h4 class="font-bold text-blue-800">Oportunidades</h4>
-              <p class="text-sm text-blue-700 whitespace-pre-wrap">${data.oportunidades}</p>
+              <p class="text-sm text-blue-700 whitespace-pre-wrap break-words" style="word-break: break-word;">${data.oportunidades}</p>
             </div>
             <div class="p-4 rounded-lg bg-yellow-200 flex flex-col justify-between">
               <h4 class="font-bold text-yellow-800">Ameaças</h4>
-              <p class="text-sm text-yellow-700 whitespace-pre-wrap">${data.ameacas}</p>
+              <p class="text-sm text-yellow-700 whitespace-pre-wrap break-words" style="word-break: break-word;">${data.ameacas}</p>
             </div>
           </div>
         </div>
@@ -344,7 +344,6 @@
 
     function renderMatrizGut(data) {
         data.problemas.sort((a, b) => (b.g * b.u * b.t) - (a.g * a.u * a.t));
-
         matrizOutput.innerHTML = `
           <div id="matriz-content" class="p-5 w-full bg-white">
             <h3 class="text-xl font-bold text-gray-800 text-center mb-4">${data.titulo}</h3>
@@ -352,11 +351,11 @@
                 <table class="min-w-full bg-white border border-gray-200 rounded-lg shadow-md">
                     <thead>
                         <tr class="bg-gray-100 text-gray-700 text-sm font-semibold">
-                            <th class="p-3 border-b-2 text-left">Problema</th>
-                            <th class="p-3 border-b-2">G</th>
-                            <th class="p-3 border-b-2">U</th>
-                            <th class="p-3 border-b-2">T</th>
-                            <th class="p-3 border-b-2">Total</th>
+                            <th class="p-3 border-b-2 text-left align-top">Problema</th>
+                            <th class="p-3 border-b-2 align-top">G</th>
+                            <th class="p-3 border-b-2 align-top">U</th>
+                            <th class="p-3 border-b-2 align-top">T</th>
+                            <th class="p-3 border-b-2 align-top">Total</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -365,11 +364,11 @@
                             const colorStyle = getGutColorClass(total);
                             return `
                                 <tr style="background-color: ${colorStyle}">
-                                    <td class="p-3 border-b text-sm text-left text-gray-700">${p.problema}</td>
-                                    <td class="p-3 border-b text-center text-sm text-gray-700">${p.g}</td>
-                                    <td class="p-3 border-b text-center text-sm text-gray-700">${p.u}</td>
-                                    <td class="p-3 border-b text-center text-sm text-gray-700">${p.t}</td>
-                                    <td class="p-3 border-b text-center text-sm font-bold text-gray-800">${total}</td>
+                                    <td class="p-3 border-b text-sm text-left text-gray-700 break-words align-top">${p.problema}</td>
+                                    <td class="p-3 border-b text-center text-sm text-gray-700 align-top">${p.g}</td>
+                                    <td class="p-3 border-b text-center text-sm text-gray-700 align-top">${p.u}</td>
+                                    <td class="p-3 border-b text-center text-sm text-gray-700 align-top">${p.t}</td>
+                                    <td class="p-3 border-b text-center text-sm font-bold text-gray-800 align-top">${total}</td>
                                 </tr>
                             `;
                         }).join('')}
@@ -388,13 +387,13 @@
                 <table class="min-w-full bg-white border border-gray-200 rounded-lg shadow-md">
                     <thead>
                         <tr class="bg-gray-100 text-gray-700 text-sm font-semibold">
-                            <th class="p-3 border-b-2 text-left">O quê?</th>
-                            <th class="p-3 border-b-2">Por quê?</th>
-                            <th class="p-3 border-b-2">Onde?</th>
-                            <th class="p-3 border-b-2">Quando?</th>
-                            <th class="p-3 border-b-2">Quem?</th>
-                            <th class="p-3 border-b-2">Como?</th>
-                            <th class="p-3 border-b-2">Quanto?</th>
+                            <th class="p-3 border-b-2 text-left align-top">O quê?</th>
+                            <th class="p-3 border-b-2 align-top">Por quê?</th>
+                            <th class="p-3 border-b-2 align-top">Onde?</th>
+                            <th class="p-3 border-b-2 align-top">Quando?</th>
+                            <th class="p-3 border-b-2 align-top">Quem?</th>
+                            <th class="p-3 border-b-2 align-top">Como?</th>
+                            <th class="p-3 border-b-2 align-top">Quanto?</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -402,13 +401,13 @@
                             const rowClass = index % 2 === 0 ? 'bg-gray-50' : 'bg-white';
                             return `
                                 <tr class="${rowClass}">
-                                    <td class="p-3 border-b text-sm text-left text-gray-700 break-words">${t.what}</td>
-                                    <td class="p-3 border-b text-sm text-gray-700 break-words">${t.why}</td>
-                                    <td class="p-3 border-b text-sm text-gray-700 break-words">${t.where}</td>
-                                    <td class="p-3 border-b text-sm text-gray-700 break-words">${t.when}</td>
-                                    <td class="p-3 border-b text-sm text-gray-700 break-words">${t.who}</td>
-                                    <td class="p-3 border-b text-sm text-gray-700 break-words">${t.how}</td>
-                                    <td class="p-3 border-b text-sm text-gray-700 break-words">${t.howMuch}</td>
+                                    <td class="p-3 border-b text-sm text-left text-gray-700 break-words align-top">${t.what}</td>
+                                    <td class="p-3 border-b text-sm text-gray-700 break-words align-top">${t.why}</td>
+                                    <td class="p-3 border-b text-sm text-gray-700 break-words align-top">${t.where}</td>
+                                    <td class="p-3 border-b text-sm text-gray-700 break-words align-top">${t.when}</td>
+                                    <td class="p-3 border-b text-sm text-gray-700 break-words align-top">${t.who}</td>
+                                    <td class="p-3 border-b text-sm text-gray-700 break-words align-top">${t.how}</td>
+                                    <td class="p-3 border-b text-sm text-gray-700 break-words align-top">${t.howMuch}</td>
                                 </tr>
                             `;
                         }).join('')}
@@ -429,7 +428,7 @@
     if (initialRadio) {
       const initialLabel = initialRadio.closest('label');
       initialLabel.classList.add('border-blue-500');
-      renderSwotInputs(); // Renderiza os inputs da SWOT por padrao
+      renderSwotInputs();
     }
 
     // Alterna os campos de input com base no radio selecionado
@@ -440,7 +439,7 @@
         
         const radio = label.querySelector('input[type="radio"]');
         currentMatrizType = radio.value;
-        matrizOutput.innerHTML = `<div id="placeholder-text" class="text-center text-gray-400 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">Sua matriz aparecera aqui</div>`;
+        matrizOutput.innerHTML = `<div id="placeholder-text" class="text-center text-gray-400 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">Sua matriz aparecerá aqui</div>`;
         matrizButtons.classList.add('hidden');
         gutProblemas = []; // Limpa a lista ao mudar de matriz
         tarefas5w2h = [];
@@ -514,18 +513,50 @@
         matrizButtons.classList.add('hidden');
       }
     });
-
     // Logica para download da imagem
     downloadMatrizBtn.addEventListener('click', () => {
       const matrizContent = document.getElementById('matriz-content');
-      html2canvas(matrizContent, {
+      
+      let elementToCapture = matrizContent;
+
+      if (currentMatrizType === 'gut' || currentMatrizType === '5w2h') {
+          const tableWrapper = matrizContent.querySelector('.overflow-x-auto');
+          const table = tableWrapper.querySelector('table');
+
+          // Cria um wrapper temporário para a tabela, fora da visualização
+          const tempWrapper = document.createElement('div');
+          tempWrapper.style.position = 'absolute';
+          tempWrapper.style.top = '-9999px';
+          document.body.appendChild(tempWrapper);
+
+          // Clona a tabela e ajusta a largura para garantir que tudo seja visível
+          const clonedTable = table.cloneNode(true);
+          clonedTable.style.minWidth = 'initial'; // Limpa a largura mínima
+          clonedTable.style.width = `${table.scrollWidth}px`; // Define a largura para o total do conteúdo
+          tempWrapper.appendChild(clonedTable);
+          
+          elementToCapture = tempWrapper;
+      }
+      
+      html2canvas(elementToCapture, {
         backgroundColor: '#ffffff',
-        scale: 2
+        scale: 4, // Aumenta a escala para 4x para alta resolução
+        useCORS: true // Essencial se houver imagens externas
       }).then(canvas => {
         const link = document.createElement('a');
         link.download = `matriz-${currentMatrizType}.png`;
         link.href = canvas.toDataURL('image/png');
         link.click();
+        
+        // Remove o elemento temporário depois do uso
+        if (elementToCapture.style.position === 'absolute') {
+            elementToCapture.remove();
+        }
+      }).catch(error => {
+          console.error("Erro ao gerar a imagem:", error);
+          if (elementToCapture && elementToCapture.style.position === 'absolute') {
+              elementToCapture.remove();
+          }
       });
     });
     
@@ -552,7 +583,6 @@
                 const total = p.g * p.u * p.t;
                 textContent += `${p.problema} (G:${p.g}, U:${p.u}, T:${p.t} - Prioridade: ${total})\n`;
             });
-            
         } else if (currentMatrizType === '5w2h') {
             textContent += `Plano de Ação 5W2H:\n\n`;
             tarefas5w2h.forEach(t => {
@@ -575,7 +605,6 @@
         link.click();
         document.body.removeChild(link);
     });
-
     // Logica para compartilhar via WhatsApp
     shareWhatsappBtn.addEventListener('click', () => {
       let shareText = '';
@@ -599,7 +628,6 @@
           const total = p.g * p.u * p.t;
           shareText += `${p.problema} (G:${p.g}, U:${p.u}, T:${p.t} - Prioridade: ${total})\n`;
         });
-        
       } else if (currentMatrizType === '5w2h') {
         shareText += `*Plano de Ação 5W2H:*\n`;
         tarefas5w2h.forEach(t => {

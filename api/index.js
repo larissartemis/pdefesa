@@ -18,7 +18,7 @@ app.use(express.static(path.join(__dirname, '..', 'public')));
 // Rota para a página inicial
 app.get('/', (req, res) => {
   res.render('layout', {
-    pageTitle: 'Projeto Coruja',
+    pageTitle: 'Plano de Defesa',
     content: 'index'
   });
 });
@@ -34,7 +34,7 @@ app.get('/timeline', (req, res) => {
 // Rota para a nova página "QR Code"
 app.get('/qr-code', (req, res) => {
   res.render('layout', {
-    pageTitle: 'Gerador de QR Code',
+    pageTitle: 'QR Code',
     content: 'qrcode'
   });
 });

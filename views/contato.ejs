@@ -4,9 +4,6 @@
   <div class="bg-white p-8 rounded-lg shadow-md w-full mx-auto">
     <div class="flex justify-between items-center mb-6">
       <h2 class="text-3xl sm:text-4xl font-bold text-gray-800">Fale conosco</h2>
-      <button id="back-btn" class="bg-gray-500 text-white font-bold py-2 px-4 rounded-md shadow-lg hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition duration-200">
-        Voltar
-      </button>
     </div>
     
     <div id="message-box" class="mt-4 p-3 rounded-md hidden opacity-0 transition-opacity duration-1000"></div>
@@ -58,11 +55,6 @@
       }, 3000);
     }
     
-    // Lógica para o botão "Voltar"
-    backBtn.addEventListener('click', () => {
-      window.location.href = '/';
-    });
-
     // Lógica para o formulário de contato
     contactForm.addEventListener("submit", function (event) {
       event.preventDefault(); 
@@ -74,7 +66,7 @@
       
       emailjs.sendForm("service_ckxevx4", "template_hhvg8yh", this)
         .then(function (response) {
-          showMessage('Sua mensagem foi enviada, em breve retornamos seu contato.', 'success');
+          showMessage('Sua mensagem foi enviada, em breve retornamos seu contato. Obrigado!', 'success');
           contactForm.reset();
           submitBtn.disabled = false;
         }, function (error) {
